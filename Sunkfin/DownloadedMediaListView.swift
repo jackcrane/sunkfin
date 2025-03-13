@@ -1,5 +1,4 @@
 import SwiftUI
-import MobileVLCKit
 import AVKit
 import JellyfinAPI
 
@@ -78,134 +77,89 @@ struct DownloadedMediaDetailView: View {
     @State private var isPlaying: Bool = true
 
     var body: some View {
-        VLCPlayerWithControls(url: downloadedItem.fileURL)
-                    .navigationTitle(downloadedItem.baseItem.name ?? "Media")
-        .onAppear {
-            let key = "watchProgress_\(downloadedItem.id)"
-            playbackProgress = UserDefaults.standard.double(forKey: key)
+        NativeVideoPlayerView(url: downloadedItem.fileURL,
+                              startTime: $playbackProgress) { progress in
+          let key = "watchProgress_\(downloadedItem.id)"
+          UserDefaults.standard.set(progress, forKey: key)
+          playbackProgress = progress
         }
-    }
+        .navigationTitle(downloadedItem.baseItem.name ?? "Media")
+        .onAppear {
+          let key = "watchProgress_\(downloadedItem.id)"
+          playbackProgress = UserDefaults.standard.double(forKey: key)
+        }
+      }
 }
 
-import SwiftUI
-import MobileVLCKit
-
-struct VLCPlayerView: UIViewRepresentable {
+struct NativeVideoPlayerView: UIViewControllerRepresentable {
   let url: URL
   @Binding var startTime: Double
   let onProgressUpdate: (Double) -> Void
-  @Binding var isPlaying: Bool
 
-  func makeUIView(context: Context) -> UIView {
-    let view = UIView(frame: .zero)
-    let mediaPlayer = VLCMediaPlayer()
-    mediaPlayer.drawable = view
-    mediaPlayer.delegate = context.coordinator
-
-    let media = VLCMedia(url: url)
-    mediaPlayer.media = media
-
-    if isPlaying {
-      mediaPlayer.play()
+  func makeUIViewController(context: Context) -> AVPlayerViewController {
+    // Configure the audio session for playback.
+    do {
+      try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback, options: [])
+      try AVAudioSession.sharedInstance().setActive(true)
+    } catch {
+      print("Audio session setup failed: \(error)")
     }
 
-    context.coordinator.mediaPlayer = mediaPlayer
-    return view
+    let player = AVPlayer(url: url)
+    // Seek to the saved time when the player is created.
+    let cmTime = CMTimeMakeWithSeconds(startTime, preferredTimescale: 600)
+    player.seek(to: cmTime)
+
+    let controller = AVPlayerViewController()
+    controller.player = player
+    controller.entersFullScreenWhenPlaybackBegins = true
+    controller.exitsFullScreenWhenPlaybackEnds = true
+
+    // Enable Picture-in-Picture (PiP)
+    controller.allowsPictureInPicturePlayback = true
+    if #available(iOS 14.2, *) {
+      controller.canStartPictureInPictureAutomaticallyFromInline = true
+    }
+
+    // Set up the coordinator to observe playback progress.
+    context.coordinator.player = player
+    context.coordinator.addTimeObserver()
+    
+    // Start playback explicitly.
+    player.play()
+    
+    return controller
   }
 
-  func updateUIView(_ uiView: UIView, context: Context) {
-    guard let mediaPlayer = context.coordinator.mediaPlayer else { return }
-    
-    // Play or pause as needed.
-    if isPlaying {
-      if !mediaPlayer.isPlaying {
-        mediaPlayer.play()
-      }
-    } else {
-      if mediaPlayer.isPlaying {
-        mediaPlayer.pause()
-      }
-    }
-    
-    // If the current playback time differs significantly from startTime, seek to new time.
-    let currentSeconds = Double(mediaPlayer.time.intValue) / 1000.0
-    if abs(currentSeconds - startTime) > 1.0 {
-        let ms = Int(startTime * 1000)
-        let newVLCTime = VLCTime(number: NSNumber(value: ms))
-        mediaPlayer.time = newVLCTime
-    }
+  func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {
+    // No dynamic updates needed for now.
   }
 
   func makeCoordinator() -> Coordinator {
     Coordinator(onProgressUpdate: onProgressUpdate)
   }
 
-  class Coordinator: NSObject, VLCMediaPlayerDelegate {
+  class Coordinator: NSObject {
     var onProgressUpdate: (Double) -> Void
-    var mediaPlayer: VLCMediaPlayer?
+    var timeObserverToken: Any?
+    weak var player: AVPlayer?
 
     init(onProgressUpdate: @escaping (Double) -> Void) {
       self.onProgressUpdate = onProgressUpdate
     }
 
-    func mediaPlayerTimeChanged(_ aNotification: Notification!) {
-      guard let mediaPlayer = mediaPlayer else { return }
-      let timeInMs = mediaPlayer.time.intValue
-      let seconds = Double(timeInMs) / 1000.0
-      onProgressUpdate(seconds)
+    deinit {
+      if let token = timeObserverToken, let player = player {
+        player.removeTimeObserver(token)
+      }
     }
-  }
-}
 
-struct VLCPlayerWithControls: View {
-  let url: URL
-  @State private var isPlaying = false
-  @State private var startTime: Double = 0.0
-  @State private var mediaDuration: Double = 100.0  // Update as needed
-  @State private var isFullScreen = false
-
-  var body: some View {
-    VStack {
-      VLCPlayerView(
-        url: url,
-        startTime: $startTime,
-        onProgressUpdate: { newTime in
-          startTime = newTime
-        },
-        isPlaying: $isPlaying
-      )
-      .frame(height: isFullScreen ? UIScreen.main.bounds.height : 250)
-      .edgesIgnoringSafeArea(isFullScreen ? .all : [])
-
-      // Progress slider for seeking.
-      Slider(value: $startTime, in: 0...mediaDuration)
-        .padding()
-
-      // Basic control buttons.
-      HStack {
-        Button(action: { isPlaying.toggle() }) {
-          Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-            .font(.title)
-            .padding()
-        }
-
-        Button(action: { startTime = max(startTime - 10, 0) }) {
-          Image(systemName: "gobackward.10")
-            .font(.title)
-            .padding()
-        }
-
-        Button(action: { startTime += 10 }) {
-          Image(systemName: "goforward.10")
-            .font(.title)
-            .padding()
-        }
-
-        Button(action: { isFullScreen.toggle() }) {
-          Image(systemName: "arrow.up.left.and.down.right.magnifyingglass")
-            .font(.title)
-            .padding()
-        }
+    func addTimeObserver() {
+      guard let player = player else { return }
+      let interval = CMTimeMakeWithSeconds(1.0, preferredTimescale: 600)
+      timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+        let seconds = CMTimeGetSeconds(time)
+        self?.onProgressUpdate(seconds)
       }
     }
   }

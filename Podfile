@@ -6,8 +6,6 @@ target 'Sunkfin' do
   use_frameworks!
 
   # Pods for Sunkfin
-  
-  pod 'MobileVLCKit'
 
   target 'SunkfinTests' do
     inherit! :search_paths
