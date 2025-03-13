@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		39DC1FD67EC1A4309BFD787C /* Pods_Sunkfin_SunkfinUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82B4F2932046F9CEBA92EBA0 /* Pods_Sunkfin_SunkfinUITests.framework */; };
+		6A0C61812D826F6A00E5526D /* JellyfinAPI in Frameworks */ = {isa = PBXBuildFile; productRef = 6A0C61802D826F6A00E5526D /* JellyfinAPI */; };
+		6A0C61DE2D82C67A00E5526D /* Pods_Sunkfin.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE4CCDD71E0E8201BA5FF244 /* Pods_Sunkfin.framework */; };
+		EE53A4FD9C4D762EC9F8999E /* Pods_SunkfinTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 848D0FAF8095792BCC53AED5 /* Pods_SunkfinTests.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		6AAE5CC52D821456002E84EE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,14 +31,37 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1F8DE7260C2BB455D8A78345 /* Pods-SunkfinTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SunkfinTests.release.xcconfig"; path = "Target Support Files/Pods-SunkfinTests/Pods-SunkfinTests.release.xcconfig"; sourceTree = "<group>"; };
+		5446B42CE22F2B10E2F260DF /* Pods-Sunkfin-SunkfinUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Sunkfin-SunkfinUITests.debug.xcconfig"; path = "Target Support Files/Pods-Sunkfin-SunkfinUITests/Pods-Sunkfin-SunkfinUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		6A0C61E12D82C6B100E5526D /* MobileVLCKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MobileVLCKit.xcframework; path = Pods/MobileVLCKit/MobileVLCKit.xcframework; sourceTree = "<group>"; };
 		6AAE5CB42D821452002E84EE /* Sunkfin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sunkfin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6AAE5CC42D821456002E84EE /* SunkfinTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SunkfinTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6AAE5CCE2D821456002E84EE /* SunkfinUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SunkfinUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		82B4F2932046F9CEBA92EBA0 /* Pods_Sunkfin_SunkfinUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Sunkfin_SunkfinUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		848D0FAF8095792BCC53AED5 /* Pods_SunkfinTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SunkfinTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C91B29E32F958F3C400F8C5E /* Pods-Sunkfin.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Sunkfin.release.xcconfig"; path = "Target Support Files/Pods-Sunkfin/Pods-Sunkfin.release.xcconfig"; sourceTree = "<group>"; };
+		E52AD32752A7C5B6B6C7CBAD /* Pods-Sunkfin.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Sunkfin.debug.xcconfig"; path = "Target Support Files/Pods-Sunkfin/Pods-Sunkfin.debug.xcconfig"; sourceTree = "<group>"; };
+		EAE39851978B1EE5C14009EF /* Pods-Sunkfin-SunkfinUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Sunkfin-SunkfinUITests.release.xcconfig"; path = "Target Support Files/Pods-Sunkfin-SunkfinUITests/Pods-Sunkfin-SunkfinUITests.release.xcconfig"; sourceTree = "<group>"; };
+		FCFBAEC57E954CE8F426019D /* Pods-SunkfinTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SunkfinTests.debug.xcconfig"; path = "Target Support Files/Pods-SunkfinTests/Pods-SunkfinTests.debug.xcconfig"; sourceTree = "<group>"; };
+		FE4CCDD71E0E8201BA5FF244 /* Pods_Sunkfin.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Sunkfin.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6A0C61972D82B86000E5526D /* Exceptions for "Sunkfin" folder in "Sunkfin" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6AAE5CB32D821452002E84EE /* Sunkfin */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6AAE5CB62D821452002E84EE /* Sunkfin */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6A0C61972D82B86000E5526D /* Exceptions for "Sunkfin" folder in "Sunkfin" target */,
+			);
 			path = Sunkfin;
 			sourceTree = "<group>";
 		};
@@ -52,6 +82,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6A0C61812D826F6A00E5526D /* JellyfinAPI in Frameworks */,
+				6A0C61DE2D82C67A00E5526D /* Pods_Sunkfin.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,6 +91,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EE53A4FD9C4D762EC9F8999E /* Pods_SunkfinTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,6 +99,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				39DC1FD67EC1A4309BFD787C /* Pods_Sunkfin_SunkfinUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +113,8 @@
 				6AAE5CC72D821456002E84EE /* SunkfinTests */,
 				6AAE5CD12D821456002E84EE /* SunkfinUITests */,
 				6AAE5CB52D821452002E84EE /* Products */,
+				A326E56D45FBA64FF8543771 /* Pods */,
+				BDA3C23173BDC4F3226A911C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -92,6 +128,30 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		A326E56D45FBA64FF8543771 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				E52AD32752A7C5B6B6C7CBAD /* Pods-Sunkfin.debug.xcconfig */,
+				C91B29E32F958F3C400F8C5E /* Pods-Sunkfin.release.xcconfig */,
+				5446B42CE22F2B10E2F260DF /* Pods-Sunkfin-SunkfinUITests.debug.xcconfig */,
+				EAE39851978B1EE5C14009EF /* Pods-Sunkfin-SunkfinUITests.release.xcconfig */,
+				FCFBAEC57E954CE8F426019D /* Pods-SunkfinTests.debug.xcconfig */,
+				1F8DE7260C2BB455D8A78345 /* Pods-SunkfinTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		BDA3C23173BDC4F3226A911C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6A0C61E12D82C6B100E5526D /* MobileVLCKit.xcframework */,
+				FE4CCDD71E0E8201BA5FF244 /* Pods_Sunkfin.framework */,
+				82B4F2932046F9CEBA92EBA0 /* Pods_Sunkfin_SunkfinUITests.framework */,
+				848D0FAF8095792BCC53AED5 /* Pods_SunkfinTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -99,9 +159,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6AAE5CD82D821456002E84EE /* Build configuration list for PBXNativeTarget "Sunkfin" */;
 			buildPhases = (
+				FBE118A7D2C1BEE012558D3B /* [CP] Check Pods Manifest.lock */,
 				6AAE5CB02D821452002E84EE /* Sources */,
 				6AAE5CB12D821452002E84EE /* Frameworks */,
 				6AAE5CB22D821452002E84EE /* Resources */,
+				1EE71398C16901EC38E26C2C /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -112,6 +174,7 @@
 			);
 			name = Sunkfin;
 			packageProductDependencies = (
+				6A0C61802D826F6A00E5526D /* JellyfinAPI */,
 			);
 			productName = Sunkfin;
 			productReference = 6AAE5CB42D821452002E84EE /* Sunkfin.app */;
@@ -121,6 +184,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6AAE5CDB2D821456002E84EE /* Build configuration list for PBXNativeTarget "SunkfinTests" */;
 			buildPhases = (
+				A0279ADED946E3FE48529EC6 /* [CP] Check Pods Manifest.lock */,
 				6AAE5CC02D821456002E84EE /* Sources */,
 				6AAE5CC12D821456002E84EE /* Frameworks */,
 				6AAE5CC22D821456002E84EE /* Resources */,
@@ -134,8 +198,6 @@
 				6AAE5CC72D821456002E84EE /* SunkfinTests */,
 			);
 			name = SunkfinTests;
-			packageProductDependencies = (
-			);
 			productName = SunkfinTests;
 			productReference = 6AAE5CC42D821456002E84EE /* SunkfinTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -144,9 +206,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6AAE5CDE2D821456002E84EE /* Build configuration list for PBXNativeTarget "SunkfinUITests" */;
 			buildPhases = (
+				374CE765704113A8ADF8F455 /* [CP] Check Pods Manifest.lock */,
 				6AAE5CCA2D821456002E84EE /* Sources */,
 				6AAE5CCB2D821456002E84EE /* Frameworks */,
 				6AAE5CCC2D821456002E84EE /* Resources */,
+				4D42D2F326C71EF3D1E0D33F /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -157,8 +221,6 @@
 				6AAE5CD12D821456002E84EE /* SunkfinUITests */,
 			);
 			name = SunkfinUITests;
-			packageProductDependencies = (
-			);
 			productName = SunkfinUITests;
 			productReference = 6AAE5CCE2D821456002E84EE /* SunkfinUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -195,6 +257,9 @@
 			);
 			mainGroup = 6AAE5CAB2D821452002E84EE;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6A0C617F2D826F6A00E5526D /* XCRemoteSwiftPackageReference "jellyfin-sdk-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6AAE5CB52D821452002E84EE /* Products */;
 			projectDirPath = "";
@@ -230,6 +295,109 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1EE71398C16901EC38E26C2C /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Sunkfin/Pods-Sunkfin-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Sunkfin/Pods-Sunkfin-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Sunkfin/Pods-Sunkfin-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		374CE765704113A8ADF8F455 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Sunkfin-SunkfinUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4D42D2F326C71EF3D1E0D33F /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Sunkfin-SunkfinUITests/Pods-Sunkfin-SunkfinUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Sunkfin-SunkfinUITests/Pods-Sunkfin-SunkfinUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Sunkfin-SunkfinUITests/Pods-Sunkfin-SunkfinUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A0279ADED946E3FE48529EC6 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-SunkfinTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		FBE118A7D2C1BEE012558D3B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Sunkfin-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		6AAE5CB02D821452002E84EE /* Sources */ = {
@@ -306,7 +474,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -369,7 +537,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -390,6 +558,7 @@
 		};
 		6AAE5CD92D821456002E84EE /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E52AD32752A7C5B6B6C7CBAD /* Pods-Sunkfin.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -399,6 +568,7 @@
 				DEVELOPMENT_TEAM = 2LXR6KM7AB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sunkfin/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -408,7 +578,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jackcrane.Sunkfin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -419,6 +589,7 @@
 		};
 		6AAE5CDA2D821456002E84EE /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C91B29E32F958F3C400F8C5E /* Pods-Sunkfin.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -428,6 +599,7 @@
 				DEVELOPMENT_TEAM = 2LXR6KM7AB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sunkfin/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -437,7 +609,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jackcrane.Sunkfin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -448,6 +620,7 @@
 		};
 		6AAE5CDC2D821456002E84EE /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FCFBAEC57E954CE8F426019D /* Pods-SunkfinTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -467,6 +640,7 @@
 		};
 		6AAE5CDD2D821456002E84EE /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1F8DE7260C2BB455D8A78345 /* Pods-SunkfinTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -486,6 +660,7 @@
 		};
 		6AAE5CDF2D821456002E84EE /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5446B42CE22F2B10E2F260DF /* Pods-Sunkfin-SunkfinUITests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -503,6 +678,7 @@
 		};
 		6AAE5CE02D821456002E84EE /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = EAE39851978B1EE5C14009EF /* Pods-Sunkfin-SunkfinUITests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -558,6 +734,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6A0C617F2D826F6A00E5526D /* XCRemoteSwiftPackageReference "jellyfin-sdk-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jellyfin/jellyfin-sdk-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6A0C61802D826F6A00E5526D /* JellyfinAPI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6A0C617F2D826F6A00E5526D /* XCRemoteSwiftPackageReference "jellyfin-sdk-swift" */;
+			productName = JellyfinAPI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6AAE5CAC2D821452002E84EE /* Project object */;
 }

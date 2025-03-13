@@ -8,11 +8,26 @@
 import SwiftUI
 
 struct DownloadPieChartView: View {
+    var progress: Double
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        HStack {
+            ZStack {
+                Circle()
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 3)
+                Circle()
+                    .trim(from: 0, to: CGFloat(progress))
+                    .stroke(Color.blue, lineWidth: 3)
+                    .rotationEffect(.degrees(-90))
+            }
+            .frame(width: 12, height: 12)
+            Text("Downloading")
+                .font(.caption2)
+                .multilineTextAlignment(.center)
+        }
     }
 }
 
 #Preview {
-    DownloadPieChartView()
+    DownloadPieChartView(progress: 0.4)
 }

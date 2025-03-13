@@ -7,7 +7,25 @@
 		<key>Sunkfin.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>4</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>6AAE5CB32D821452002E84EE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>6AAE5CC32D821456002E84EE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>6AAE5CCD2D821456002E84EE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>
