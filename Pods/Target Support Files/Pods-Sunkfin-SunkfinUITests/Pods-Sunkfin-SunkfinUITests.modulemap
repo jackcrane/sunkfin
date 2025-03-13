@@ -1,0 +1,6 @@
+framework module Pods_Sunkfin_SunkfinUITests {
+  umbrella header "Pods-Sunkfin-SunkfinUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}

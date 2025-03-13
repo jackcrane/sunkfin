@@ -1,0 +1,6 @@
+framework module Pods_Sunkfin {
+  umbrella header "Pods-Sunkfin-umbrella.h"
+
+  export *
+  module * { export * }
+}
