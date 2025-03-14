@@ -2,19 +2,21 @@ import Foundation
 import SwiftUI
 import JellyfinAPI
 
-final class DownloadManager: ObservableObject {
+final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDelegate {
     static let shared = DownloadManager()
     
     // A download record for an item.
     final class Download: Identifiable, ObservableObject {
         let id: String
+        var baseItem: BaseItemDto? // Store metadata for later use.
         @Published var progress: Double = 0.0
         @Published var isDownloading: Bool = false
         var task: URLSessionDownloadTask?
         var progressObservation: NSKeyValueObservation?
         
-        init(id: String) {
+        init(id: String, baseItem: BaseItemDto? = nil) {
             self.id = id
+            self.baseItem = baseItem
         }
     }
     
@@ -28,7 +30,16 @@ final class DownloadManager: ObservableObject {
     @Published var downloads: [String: Download] = [:]
     @Published var downloadedItems: [String: DownloadedItem] = [:]
     
-    init() {
+    // Create a background URLSession with a unique identifier.
+    private lazy var backgroundSession: URLSession = {
+        let configuration = URLSessionConfiguration.background(withIdentifier: "com.myapp.backgroundSession")
+        configuration.sessionSendsLaunchEvents = true
+        configuration.isDiscretionary = true
+        return URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+    }()
+    
+    override init() {
+        super.init()
         loadDownloadedItems()
     }
     
@@ -60,7 +71,7 @@ final class DownloadManager: ObservableObject {
         }
     }
     
-    /// Starts a download for a given item.
+    /// Starts a background download for a given item.
     func startDownload(for item: BaseItemDto, serverUrl: String, accessToken: String) {
         guard let itemId = item.id,
               let url = URL(string: "\(serverUrl)/Items/\(itemId)/Download?api_key=\(accessToken)") else {
@@ -68,53 +79,17 @@ final class DownloadManager: ObservableObject {
             return
         }
         
-        let download = Download(id: itemId)
+        let download = Download(id: itemId, baseItem: item)
         download.isDownloading = true
         downloads[itemId] = download
         
-        let task = URLSession.shared.downloadTask(with: url) { [weak self, weak download] tempURL, response, error in
-            DispatchQueue.main.async {
-                guard let download = download else { return }
-                download.isDownloading = false
-                if let error = error {
-                    print("Download error: \(error)")
-                    self?.downloads.removeValue(forKey: itemId)
-                    return
-                }
-                guard let tempURL = tempURL else {
-                    print("No temporary file URL found")
-                    self?.downloads.removeValue(forKey: itemId)
-                    return
-                }
-                
-                do {
-                    let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                    // Move the downloaded file to the documents directory.
-                    let fileURL = documentsPath.appendingPathComponent("\(itemId).mp4")
-                    try FileManager.default.moveItem(at: tempURL, to: fileURL)
-                    print("File saved to: \(fileURL.path)")
-                    
-                    // Save the BaseItemDto metadata offline as JSON.
-                    let encoder = JSONEncoder()
-                    let data = try encoder.encode(item)
-                    let jsonURL = documentsPath.appendingPathComponent("\(itemId).json")
-                    try data.write(to: jsonURL)
-                    print("Metadata saved to: \(jsonURL.path)")
-                    
-                    // Track the downloaded file and its associated metadata.
-                    let downloadedItem = DownloadedItem(id: itemId, baseItem: item, fileURL: fileURL)
-                    self?.downloadedItems[itemId] = downloadedItem
-                    
-                } catch {
-                    print("Error saving file or metadata: \(error)")
-                }
-                self?.downloads.removeValue(forKey: itemId)
-            }
-        }
-        
+        let task = backgroundSession.downloadTask(with: url)
+        // Use taskDescription to store the item id for retrieval in delegate callbacks.
+        task.taskDescription = itemId
         download.task = task
-        // Observe the progress so it updates our published value.
-        download.progressObservation = task.progress.observe(\.fractionCompleted, options: [.new]) { (progress: Progress, change: NSKeyValueObservedChange<Double>) in
+        
+        // Observe the download progress.
+        download.progressObservation = task.progress.observe(\.fractionCompleted, options: [.new]) { progress, change in
             if let newValue = change.newValue {
                 DispatchQueue.main.async {
                     download.progress = newValue
@@ -170,5 +145,54 @@ final class DownloadManager: ObservableObject {
         // Remove the item from our tracking dictionary.
         downloadedItems.removeValue(forKey: itemId)
         print("Removed downloaded item with id: \(itemId) from memory.")
+    }
+    
+    // MARK: - URLSessionDownloadDelegate Methods
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        guard let itemId = downloadTask.taskDescription else {
+            print("Task description missing.")
+            return
+        }
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, let download = self.downloads[itemId] else { return }
+            download.isDownloading = false
+            
+            do {
+                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                // Move the downloaded file to the documents directory.
+                let fileURL = documentsPath.appendingPathComponent("\(itemId).mp4")
+                try FileManager.default.moveItem(at: location, to: fileURL)
+                print("File saved to: \(fileURL.path)")
+                
+                // Save the BaseItemDto metadata offline as JSON.
+                if let baseItem = download.baseItem {
+                    let encoder = JSONEncoder()
+                    let data = try encoder.encode(baseItem)
+                    let jsonURL = documentsPath.appendingPathComponent("\(itemId).json")
+                    try data.write(to: jsonURL)
+                    print("Metadata saved to: \(jsonURL.path)")
+                    
+                    // Track the downloaded file and its associated metadata.
+                    let downloadedItem = DownloadedItem(id: itemId, baseItem: baseItem, fileURL: fileURL)
+                    self.downloadedItems[itemId] = downloadedItem
+                }
+            } catch {
+                print("Error saving file or metadata: \(error)")
+            }
+            
+            self.downloads.removeValue(forKey: itemId)
+        }
+    }
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        guard let itemId = task.taskDescription else { return }
+        DispatchQueue.main.async { [weak self] in
+            if let error = error {
+                print("Download error for \(itemId): \(error)")
+            }
+            self?.downloads.removeValue(forKey: itemId)
+        }
     }
 }
