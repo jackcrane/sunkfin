@@ -150,38 +150,71 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
     // MARK: - URLSessionDownloadDelegate Methods
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        // Retrieve the item id from the task description.
         guard let itemId = downloadTask.taskDescription else {
             print("Task description missing.")
             return
         }
         
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self, let download = self.downloads[itemId] else { return }
-            download.isDownloading = false
-            
+        let fileManager = FileManager.default
+        let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fileURL = documentsPath.appendingPathComponent("\(itemId).mp4")
+        
+        // Ensure the destination directory exists.
+        let directory = fileURL.deletingLastPathComponent()
+        if !fileManager.fileExists(atPath: directory.path) {
             do {
-                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                // Move the downloaded file to the documents directory.
-                let fileURL = documentsPath.appendingPathComponent("\(itemId).mp4")
-                try FileManager.default.moveItem(at: location, to: fileURL)
-                print("File saved to: \(fileURL.path)")
-                
-                // Save the BaseItemDto metadata offline as JSON.
-                if let baseItem = download.baseItem {
-                    let encoder = JSONEncoder()
-                    let data = try encoder.encode(baseItem)
-                    let jsonURL = documentsPath.appendingPathComponent("\(itemId).json")
-                    try data.write(to: jsonURL)
-                    print("Metadata saved to: \(jsonURL.path)")
-                    
-                    // Track the downloaded file and its associated metadata.
-                    let downloadedItem = DownloadedItem(id: itemId, baseItem: baseItem, fileURL: fileURL)
-                    self.downloadedItems[itemId] = downloadedItem
-                }
+                try fileManager.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
             } catch {
-                print("Error saving file or metadata: \(error)")
+                print("Error creating directory: \(error)")
             }
-            
+        }
+        
+        // Overwrite any existing file at destination.
+        if fileManager.fileExists(atPath: fileURL.path) {
+            do {
+                try fileManager.removeItem(at: fileURL)
+            } catch {
+                print("Error removing existing file: \(error)")
+            }
+        }
+        
+        // Immediately move the downloaded file to the destination.
+        do {
+            try fileManager.moveItem(at: location, to: fileURL)
+            print("File saved to: \(fileURL.path)")
+        } catch {
+            print("Error moving file: \(error)")
+            return // Exit if the move fails.
+        }
+        
+        // Save the metadata JSON file.
+        if let download = downloads[itemId], let baseItem = download.baseItem {
+            let jsonURL = documentsPath.appendingPathComponent("\(itemId).json")
+            if fileManager.fileExists(atPath: jsonURL.path) {
+                do {
+                    try fileManager.removeItem(at: jsonURL)
+                } catch {
+                    print("Error removing existing metadata file: \(error)")
+                }
+            }
+            do {
+                let data = try JSONEncoder().encode(baseItem)
+                try data.write(to: jsonURL)
+                print("Metadata saved to: \(jsonURL.path)")
+            } catch {
+                print("Error saving metadata: \(error)")
+            }
+        }
+        
+        // Update tracking dictionaries on the main thread.
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.downloads[itemId]?.isDownloading = false
+            if let download = self.downloads[itemId], let baseItem = download.baseItem {
+                let downloadedItem = DownloadedItem(id: itemId, baseItem: baseItem, fileURL: fileURL)
+                self.downloadedItems[itemId] = downloadedItem
+            }
             self.downloads.removeValue(forKey: itemId)
         }
     }
