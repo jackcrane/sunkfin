@@ -55,17 +55,6 @@ struct ShowsListView: View {
                         }
                         
                         Spacer()
-                        
-                        // If a download is in progress for this show, display the pie chart and a cancel button.
-                        if let download = downloadManager.downloads[show.id ?? ""] {
-                            VStack {
-                                DownloadPieChartView(progress: download.progress)
-                                Button("Cancel") {
-                                    downloadManager.cancelDownload(for: show.id ?? "")
-                                }
-                                .font(.caption)
-                            }
-                        }
                     }
                     .frame(height: 120)
                     .padding(.vertical, 5)

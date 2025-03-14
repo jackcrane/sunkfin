@@ -14,6 +14,12 @@ struct LibraryItemView: View {
     @State private var downloadProgress: Double = 0.0
     @State private var isDownloading: Bool = false
 
+    // Check if the media item has been downloaded.
+    var downloadedItem: DownloadManager.DownloadedItem? {
+        guard let id = item.id else { return nil }
+        return downloadManager.downloadedItems[id]
+    }
+    
     var body: some View {
         VStack {
             HStack(alignment: .top, spacing: 16) {
@@ -44,37 +50,60 @@ struct LibraryItemView: View {
             
             Spacer()
             
-            Button(action: {
-                if isDownloading, let itemId = item.id {
-                    downloadManager.cancelDownload(for: itemId)
-                } else {
-                    downloadManager.startDownload(for: item, serverUrl: serverUrl, accessToken: accessToken)
+            // If the media is downloaded, show "View" and "Delete" buttons.
+            if let downloaded = downloadedItem {
+                HStack(spacing: 16) {
+                    Button(action: {
+                        downloadManager.deleteDownloadedItem(for: downloaded.id)
+                    }) {
+                        Image(systemName: "trash")
+                            .frame(width: 50, height: 50)
+                            .background(Color.red.opacity(0.6)) // Light red
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+
+                    NavigationLink(destination: DownloadedMediaDetailView(downloadedItem: downloaded, serverUrl: serverUrl)) {
+                        Text("Watch")
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
                 }
-            }) {
-                if let itemId = item.id,
-                    let download = downloadManager.downloads[itemId] {
-                    // Use a dedicated view that observes changes in the download object.
-                    HStack(spacing: 0) {
-                        DownloadProgressView(download: download)
-                            .font(.headline)
-                        
-                        Text(". Tap to cancel")
+            } else {
+                // Otherwise, show the download button (or cancel action if already downloading).
+                Button(action: {
+                    if isDownloading, let itemId = item.id {
+                        downloadManager.cancelDownload(for: itemId)
+                    } else {
+                        downloadManager.startDownload(for: item, serverUrl: serverUrl, accessToken: accessToken)
+                    }
+                }) {
+                    if let itemId = item.id,
+                       let download = downloadManager.downloads[itemId] {
+                        HStack(spacing: 0) {
+                            DownloadProgressView(download: download)
+                                .font(.headline)
+                            
+                            Text(". Tap to cancel")
+                                .font(.headline)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(isDownloading ? Color.gray : Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    } else {
+                        Text("Download")
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(isDownloading ? Color.gray : Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
                             .font(.headline)
                     }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(isDownloading ? Color.gray : Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .font(.headline)
-                } else {
-                    Text("Download")
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(isDownloading ? Color.gray : Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .font(.headline)
                 }
             }
         }
@@ -97,7 +126,6 @@ struct LibraryItemView: View {
         }
     }
 }
-
 
 #Preview {
     LibraryItemView(
@@ -229,7 +257,6 @@ struct LibraryItemView: View {
             parentIndexNumber: nil,
             parentLogoImageTag: nil,
             parentLogoItemID: nil,
-            parentPrimaryImageItemID: nil,
             parentPrimaryImageTag: nil,
             parentThumbImageTag: nil,
             parentThumbItemID: nil,
@@ -285,9 +312,7 @@ struct LibraryItemView: View {
                 playCount: 3,
                 playbackPositionTicks: 0,
                 isPlayed: true,
-                playedPercentage: nil,
-                rating: nil,
-                unplayedItemCount: nil
+                playedPercentage: nil
             ),
             video3DFormat: nil,
             videoType: JellyfinAPI.VideoType.videoFile,

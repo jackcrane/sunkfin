@@ -2,6 +2,27 @@ import SwiftUI
 import AVKit
 import JellyfinAPI
 
+struct DownloadRow: View {
+    @ObservedObject var download: DownloadManager.Download
+
+    var body: some View {
+        HStack {
+            if let name = download.baseItem?.name {
+                Text(name)
+                    .font(.headline)
+            } else {
+                Text("Downloading...")
+                    .font(.headline)
+            }
+            Spacer()
+            ProgressView(value: download.progress)
+                .progressViewStyle(LinearProgressViewStyle())
+                .frame(width: 100)
+        }
+        .padding(.vertical, 4)
+    }
+}
+
 struct DownloadedMediaListView: View {
     let serverUrl: String
     @State private var searchQuery = ""
@@ -16,55 +37,74 @@ struct DownloadedMediaListView: View {
             return items.filter { ($0.baseItem.name?.localizedCaseInsensitiveContains(searchQuery) ?? false) }
         }
     }
+    
+    // Filter currently downloading items based on the search query.
+    var filteredCurrentDownloads: [DownloadManager.Download] {
+        let items = Array(downloadManager.downloads.values)
+        if searchQuery.isEmpty {
+            return items
+        } else {
+            return items.filter { ($0.baseItem?.name?.localizedCaseInsensitiveContains(searchQuery) ?? false) }
+        }
+    }
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(filteredDownloads, id: \.id) { downloadedItem in
-                    NavigationLink(destination: DownloadedMediaDetailView(downloadedItem: downloadedItem, serverUrl: serverUrl)) {
-                        HStack(spacing: 12) {
-                            // Use the item's primary image (fetched from the server).
-                            if let imageUrl = getImageUrl(for: downloadedItem.baseItem) {
-                                AsyncImage(url: imageUrl) { image in
-                                    image.resizable()
-                                        .scaledToFill()
-                                } placeholder: {
-                                    Color.gray.opacity(0.3)
-                                }
-                                .frame(width: 80, height: 100)
-                                .cornerRadius(8)
-                                .clipped()
-                            }
-
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(downloadedItem.baseItem.name ?? "Unknown Media")
-                                    .font(.headline)
-                                    .lineLimit(2)
-
-                                if let year = downloadedItem.baseItem.productionYear {
-                                    Text("\(String(year))")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-
-                                if let ticks = downloadedItem.baseItem.runTimeTicks {
-                                    let seconds = ticks / 10000000
-                                    TimeView(seconds: seconds)
-                                }
-                            }
+                if !filteredCurrentDownloads.isEmpty {
+                    Section(header: Text("Downloading")) {
+                        ForEach(filteredCurrentDownloads, id: \.id) { download in
+                            DownloadRow(download: download)
                         }
-                        .frame(height: 120)
-                        .padding(.vertical, 5)
                     }
                 }
-                .onDelete(perform: deleteItems)
+                
+                Section(header: Text("Downloaded Media")) {
+                    ForEach(filteredDownloads, id: \.id) { downloadedItem in
+                        NavigationLink(destination: DownloadedMediaDetailView(downloadedItem: downloadedItem, serverUrl: serverUrl)) {
+                            HStack(spacing: 12) {
+                                if let imageUrl = getImageUrl(for: downloadedItem.baseItem) {
+                                    AsyncImage(url: imageUrl) { image in
+                                        image.resizable()
+                                            .scaledToFill()
+                                    } placeholder: {
+                                        Color.gray.opacity(0.3)
+                                    }
+                                    .frame(width: 80, height: 100)
+                                    .cornerRadius(8)
+                                    .clipped()
+                                }
+
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(downloadedItem.baseItem.name ?? "Unknown Media")
+                                        .font(.headline)
+                                        .lineLimit(2)
+
+                                    if let year = downloadedItem.baseItem.productionYear {
+                                        Text("\(year)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    if let ticks = downloadedItem.baseItem.runTimeTicks {
+                                        let seconds = ticks / 10000000
+                                        TimeView(seconds: seconds)
+                                    }
+                                }
+                            }
+                            .frame(height: 120)
+                            .padding(.vertical, 5)
+                        }
+                    }
+                    .onDelete(perform: deleteItems)
+                }
             }
+            .listStyle(.insetGrouped)
             .searchable(text: $searchQuery, prompt: "Search Downloaded Media")
-            .navigationTitle("Downloaded Media")
+            .navigationTitle("Library")
         }
     }
     
-    // Constructs the URL for the item's primary image.
     private func getImageUrl(for item: BaseItemDto) -> URL? {
         guard let id = item.id,
               let token = UserDefaults.standard.string(forKey: "accessToken"),
@@ -72,7 +112,6 @@ struct DownloadedMediaListView: View {
         return URL(string: "\(url)/Items/\(id)/Images/Primary?api_key=\(token)")
     }
     
-    // Deletes the downloaded item when swiped.
     private func deleteItems(at offsets: IndexSet) {
         offsets.forEach { index in
             let item = filteredDownloads[index]
@@ -85,19 +124,18 @@ struct DownloadedMediaDetailView: View {
     let downloadedItem: DownloadManager.DownloadedItem
     let serverUrl: String
     @State private var playbackProgress: Double = 0.0
-    @State private var isPlaying: Bool = true
 
     var body: some View {
         NativeVideoPlayerView(url: downloadedItem.fileURL,
                               startTime: $playbackProgress) { progress in
-          let key = "watchProgress_\(downloadedItem.id)"
-          UserDefaults.standard.set(progress, forKey: key)
-          playbackProgress = progress
+            let key = "watchProgress_\(downloadedItem.id)"
+            UserDefaults.standard.set(progress, forKey: key)
+            playbackProgress = progress
         }
         .navigationTitle(downloadedItem.baseItem.name ?? "Media")
         .onAppear {
-          let key = "watchProgress_\(downloadedItem.id)"
-          playbackProgress = UserDefaults.standard.double(forKey: key)
+            let key = "watchProgress_\(downloadedItem.id)"
+            playbackProgress = UserDefaults.standard.double(forKey: key)
         }
     }
 }
@@ -108,7 +146,6 @@ struct NativeVideoPlayerView: UIViewControllerRepresentable {
     let onProgressUpdate: (Double) -> Void
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
-        // Configure the audio session for playback.
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback, options: [])
             try AVAudioSession.sharedInstance().setActive(true)
@@ -117,7 +154,6 @@ struct NativeVideoPlayerView: UIViewControllerRepresentable {
         }
 
         let player = AVPlayer(url: url)
-        // Seek to the saved time when the player is created.
         let cmTime = CMTimeMakeWithSeconds(startTime, preferredTimescale: 600)
         player.seek(to: cmTime)
 
@@ -126,25 +162,20 @@ struct NativeVideoPlayerView: UIViewControllerRepresentable {
         controller.entersFullScreenWhenPlaybackBegins = true
         controller.exitsFullScreenWhenPlaybackEnds = true
 
-        // Enable Picture-in-Picture (PiP)
         controller.allowsPictureInPicturePlayback = true
         if #available(iOS 14.2, *) {
             controller.canStartPictureInPictureAutomaticallyFromInline = true
         }
 
-        // Set up the coordinator to observe playback progress.
         context.coordinator.player = player
         context.coordinator.addTimeObserver()
         
-        // Start playback explicitly.
         player.play()
         
         return controller
     }
 
-    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {
-        // No dynamic updates needed for now.
-    }
+    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
         Coordinator(onProgressUpdate: onProgressUpdate)
