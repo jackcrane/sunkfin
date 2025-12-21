@@ -12,6 +12,7 @@ struct MainAppView: View {
     let serverUrl: String
     let onLogout: () -> Void
     @StateObject private var downloadManager = DownloadManager.shared
+    @ObservedObject private var supporterManager = SupporterManager.shared
     @State private var showDonationSheet = false
     @State private var hasPresentedDonationSheet = false
     private let donationThresholdBytes: Int64 = 10 * 1024 * 1024 * 1024
@@ -45,6 +46,7 @@ struct MainAppView: View {
 
     private func checkDonationSheet() {
         guard !hasPresentedDonationSheet else { return }
+        guard !supporterManager.isSupporterActive else { return }
         if downloadManager.totalDownloadedBytes >= donationThresholdBytes {
             hasPresentedDonationSheet = true
             showDonationSheet = true

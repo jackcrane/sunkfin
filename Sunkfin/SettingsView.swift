@@ -6,23 +6,39 @@ struct SettingsView: View {
 
     @State private var showingLogoutWarning = false
     @State private var showingDonationSheet = false
+    @State private var showingSupportResetConfirmation = false
+    @ObservedObject private var supporterManager = SupporterManager.shared
     private let downloadManager = DownloadManager.shared
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    Text("Sunkfin is not endorsed, supported, or built in collaboration with the Jellyfin core team. It is offered as-is and donations are appreciated.")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
-
-                Section {
                     Button {
                         showingDonationSheet = true
                     } label: {
                         Text("Support Sunkfin via a small donation")
                     }
+
+                    if supporterManager.isSupporterActive, let expiryText = supporterManager.expiryDisplayText {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Thanks for your support")
+                                .font(.subheadline)
+                            Button {
+                                showingSupportResetConfirmation = true
+                            } label: {
+                                Text("Donor benefits available until \(expiryText). Tap to reset")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
+                }
+
+                Section {
+                    Text("Sunkfin is not endorsed, supported, or built in collaboration with the Jellyfin core team. It is offered as-is and donations are appreciated.")
+                        .font(.body)
+                        .foregroundColor(.secondary)
                 }
 
                 Section {
@@ -45,6 +61,14 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingDonationSheet) {
                 SafariView(url: URL(string: "https://go.jackcrane.rocks/sunkfin-donation")!)
+            }
+            .alert("Reset donor benefits", isPresented: $showingSupportResetConfirmation) {
+                Button("Reset", role: .destructive) {
+                    supporterManager.clearSupporter()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will remove your donor status.")
             }
         }
     }
