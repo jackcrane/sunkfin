@@ -168,6 +168,7 @@ struct SeriesDetailView: View {
                     Image(systemName: "arrow.down.circle")
                         .font(.title2)
                 }
+                .buttonStyle(.plain)
                 .disabled(loadingSeasonIDs.contains(seasonId))
             }
         }
