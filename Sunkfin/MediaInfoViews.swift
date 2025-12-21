@@ -3,20 +3,32 @@ import SwiftUI
 struct TimeView: View {
     let seconds: Int
 
+    private var normalizedSeconds: Int {
+        max(0, seconds)
+    }
+
     private var formattedTime: String {
-        let hours = seconds / 3600
-        let minutes = (seconds % 3600) / 60
+        let hours = normalizedSeconds / 3600
+        let minutes = (normalizedSeconds % 3600) / 60
         return hours > 0 ? "\(hours)h \(minutes)m" : "\(minutes)m"
     }
 
+    private var shouldShowDuration: Bool {
+        normalizedSeconds >= 60
+    }
+
     var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "clock")
-                .foregroundColor(.secondary)
-            Text(formattedTime)
-                .font(.subheadline)
-                .monospacedDigit()
-                .foregroundColor(.secondary)
+        if shouldShowDuration {
+            HStack(spacing: 4) {
+                Image(systemName: "clock")
+                    .foregroundColor(.secondary)
+                Text(formattedTime)
+                    .font(.subheadline)
+                    .monospacedDigit()
+                    .foregroundColor(.secondary)
+            }
+        } else {
+            EmptyView()
         }
     }
 }

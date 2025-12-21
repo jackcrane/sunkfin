@@ -60,6 +60,7 @@ struct SeriesDetailView: View {
                         }
                     }
                 }
+
             }
         }
         .navigationTitle(series.name ?? "Series")
@@ -117,14 +118,9 @@ struct SeriesDetailView: View {
                 }
 
                 if let year = series.productionYear {
-                    Text("\(year)")
+                    Text(verbatim: "\(year)")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                }
-
-                if let ticks = series.runTimeTicks {
-                    let seconds = ticks / 10_000_000
-                    TimeView(seconds: seconds)
                 }
 
                 if let userData = series.userData {
@@ -195,6 +191,11 @@ struct SeriesDetailView: View {
 
                 if let userData = episode.userData {
                     ShowProgressView(hasWatched: userData.isPlayed ?? false, percentage: userData.playedPercentage)
+                }
+
+                if let ticks = episode.runTimeTicks {
+                    let seconds = ticks / 10_000_000
+                    TimeView(seconds: seconds)
                 }
             }
 
