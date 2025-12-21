@@ -25,7 +25,7 @@ struct LibraryItemView: View {
     var body: some View {
         VStack {
             HStack(alignment: .top, spacing: 16) {
-                if let primaryUrl = URL(string: "\(serverUrl)/Items/\(item.id ?? "")/Images/Primary?api_key=\(accessToken)") {
+                if let primaryUrl = item.primaryImageURL(serverUrl: serverUrl, accessToken: accessToken) {
                     AsyncImage(url: primaryUrl) { image in
                         image.resizable().scaledToFit()
                     } placeholder: {
