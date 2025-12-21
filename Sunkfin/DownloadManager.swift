@@ -11,8 +11,13 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         var baseItem: BaseItemDto? // Store metadata for later use.
         @Published var progress: Double = 0.0
         @Published var isDownloading: Bool = false
+        @Published var bytesDownloaded: Int64 = 0
+        @Published var totalBytes: Int64 = 0
+        @Published var downloadSpeed: Double = 0
+        @Published var estimatedTimeRemaining: TimeInterval?
         var task: URLSessionDownloadTask?
-        var progressObservation: NSKeyValueObservation?
+        var speedSampleTime: Date?
+        var speedSampleBytes: Int64 = 0
         
         init(id: String, baseItem: BaseItemDto? = nil) {
             self.id = id
@@ -89,15 +94,6 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         download.task = task
         
         // Observe the download progress.
-        download.progressObservation = task.progress.observe(\.fractionCompleted, options: [.new]) { progress, change in
-            if let newValue = change.newValue {
-                DispatchQueue.main.async {
-                    download.progress = newValue
-                }
-            }
-            print("Download progress for \(itemId): \(progress.fractionCompleted)")
-        }
-        
         task.resume()
     }
     
@@ -108,6 +104,44 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
             download.isDownloading = false
             downloads.removeValue(forKey: itemId)
             print("Download cancelled for \(itemId)")
+        }
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        guard let itemId = downloadTask.taskDescription,
+              let download = downloads[itemId] else { return }
+        
+        DispatchQueue.main.async {
+            let now = Date()
+            if totalBytesExpectedToWrite > 0 {
+                download.progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+                download.totalBytes = totalBytesExpectedToWrite
+            }
+            download.bytesDownloaded = totalBytesWritten
+            
+            let sampleInterval: TimeInterval = 0.5
+            if let lastSampleDate = download.speedSampleTime {
+                let interval = now.timeIntervalSince(lastSampleDate)
+                if interval >= sampleInterval {
+                    let deltaBytes = totalBytesWritten - download.speedSampleBytes
+                    let speed = Double(deltaBytes) / interval
+                    download.downloadSpeed = max(speed, 0)
+                    download.speedSampleTime = now
+                    download.speedSampleBytes = totalBytesWritten
+                }
+            } else {
+                download.speedSampleTime = now
+                download.speedSampleBytes = totalBytesWritten
+                download.downloadSpeed = 0
+            }
+            
+            if download.downloadSpeed > 0 && totalBytesExpectedToWrite > 0 {
+                let remainingBytes = totalBytesExpectedToWrite - totalBytesWritten
+                download.estimatedTimeRemaining = Double(max(remainingBytes, 0)) / download.downloadSpeed
+            } else {
+                download.estimatedTimeRemaining = nil
+            }
+            
         }
     }
     

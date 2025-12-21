@@ -4,22 +4,120 @@ import JellyfinAPI
 
 struct DownloadRow: View {
     @ObservedObject var download: DownloadManager.Download
+    @State private var showDetails = false
 
     var body: some View {
-        HStack {
-            if let name = download.baseItem?.name {
-                Text(name)
-                    .font(.headline)
-            } else {
-                Text("Downloading...")
-                    .font(.headline)
+        DisclosureGroup(isExpanded: $showDetails) {
+            VStack(alignment: .leading, spacing: 6) {
+                metricRow(icon: "arrow.down.circle", value: downloadedDescription)
+                metricRow(icon: "speedometer", value: speedDescription)
+                metricRow(icon: "clock.arrow.circlepath", value: etaDescription)
             }
-            Spacer()
-            ProgressView(value: download.progress)
-                .progressViewStyle(LinearProgressViewStyle())
-                .frame(width: 100)
+            .padding(.top, 6)
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(download.baseItem?.name ?? "Downloading...")
+                        .font(.headline)
+                        .lineLimit(2)
+                    Text(progressDescription)
+                        .font(.system(.subheadline, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                ProgressView(value: download.progress)
+                    .progressViewStyle(LinearProgressViewStyle())
+                    .frame(width: 100)
+            }
+            .contentShape(Rectangle())
         }
         .padding(.vertical, 4)
+    }
+    
+    private var downloadedDescription: String {
+        let downloaded = Self.formattedBytes(download.bytesDownloaded)
+        if download.totalBytes > 0 {
+            let total = Self.formattedBytes(download.totalBytes)
+            return "\(downloaded) / \(total)"
+        } else {
+            return downloaded
+        }
+    }
+    
+    private var speedDescription: String {
+        guard download.downloadSpeed > 0 else { return "Calculating..." }
+        return Self.formattedSpeed(download.downloadSpeed)
+    }
+    
+    private var etaDescription: String {
+        guard let eta = download.estimatedTimeRemaining else {
+            return "Calculating..."
+        }
+        let totalSeconds = max(Int(eta.rounded()), 0)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+    
+    private var progressDescription: String {
+        let percent = Int((download.progress * 100).rounded())
+        return "\(percent)%"
+    }
+    
+    private func metricRow(icon: String, value: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .frame(width: 18)
+            Spacer()
+            Text(paddedValue(value))
+                .font(.system(.subheadline, design: .monospaced))
+                .frame(minWidth: 170, alignment: .trailing)
+                .lineLimit(1)
+        }
+    }
+    
+    private func paddedValue(_ value: String) -> String {
+        let targetLength = 12
+        if value.count >= targetLength {
+            return value
+        }
+        return String(repeating: " ", count: targetLength - value.count) + value
+    }
+    
+    private static func formattedBytes(_ bytes: Int64) -> String {
+        let absolute = Double(abs(bytes))
+        let units: [(threshold: Double, label: String)] = [
+            (threshold: Double(1 << 30), label: "GB"),
+            (threshold: Double(1 << 20), label: "MB"),
+            (threshold: Double(1 << 10), label: "KB")
+        ]
+        for unit in units {
+            if absolute >= unit.threshold {
+                let value = absolute / unit.threshold
+                return String(format: "%.2f %@", value, unit.label)
+            }
+        }
+        return String(format: "%.2f B", absolute)
+    }
+
+    private static func formattedSpeed(_ bytesPerSecond: Double) -> String {
+        let absolute = abs(bytesPerSecond)
+        let units: [(threshold: Double, label: String)] = [
+            (threshold: Double(1 << 30), label: "GB"),
+            (threshold: Double(1 << 20), label: "MB"),
+            (threshold: Double(1 << 10), label: "KB")
+        ]
+        for unit in units {
+            if absolute >= unit.threshold {
+                let value = absolute / unit.threshold
+                return String(format: "%.1f %@/s", value, unit.label)
+            }
+        }
+        let value = absolute
+        return String(format: "%.1f B/s", value)
     }
 }
 
