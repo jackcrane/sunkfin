@@ -139,9 +139,11 @@ struct SeriesDetailView: View {
                 Text(season.name ?? "Season \(season.indexNumber ?? 0)")
                     .font(.headline)
                 HStack {
-                    Text("\(season.episodeCount ?? 0) episode\(season.episodeCount == 1 ? "" : "s")")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    if let episodeCount = availableEpisodeCount(for: season) {
+                        Text("\(episodeCount) episode\(episodeCount == 1 ? "" : "s")")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
 
                     if let ticks = season.runTimeTicks {
                         let seconds = ticks / 10_000_000
@@ -168,6 +170,21 @@ struct SeriesDetailView: View {
                 .disabled(loadingSeasonIDs.contains(seasonId))
             }
         }
+    }
+
+    private func availableEpisodeCount(for season: BaseItemDto) -> Int? {
+        if let count = season.episodeCount {
+            return count
+        }
+        if let count = season.childCount {
+            return count
+        }
+
+        if let seasonId = season.id, let episodes = seasonEpisodes[seasonId] {
+            return episodes.count
+        }
+
+        return nil
     }
 
     private func episodeRow(for episode: BaseItemDto) -> some View {
