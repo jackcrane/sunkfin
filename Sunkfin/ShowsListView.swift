@@ -7,6 +7,8 @@ struct ShowsListView: View {
     @State private var searchQuery = ""
     @StateObject private var downloadManager = DownloadManager.shared
     let token = UserDefaults.standard.string(forKey: "accessToken")
+    @State private var deleteCandidate: DownloadManager.DownloadedItem?
+    @State private var showDeleteConfirmation = false
     
     var filteredShows: [BaseItemDto] {
         if searchQuery.isEmpty {
@@ -56,8 +58,33 @@ struct ShowsListView: View {
                         
                         Spacer()
                     }
-                    .frame(height: 120)
-                    .padding(.vertical, 5)
+                .frame(height: 120)
+                .padding(.vertical, 5)
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    switch swipeAction(for: show) {
+                    case .delete(let downloaded):
+                        Button(role: .destructive) {
+                            deleteCandidate = downloaded
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    case .cancel(let itemId):
+                        Button(role: .destructive) {
+                            downloadManager.cancelDownload(for: itemId)
+                        } label: {
+                            Label("Cancel", systemImage: "xmark.circle")
+                        }
+                    case .download:
+                        Button {
+                            startDownload(for: show)
+                        } label: {
+                            Label("Download", systemImage: "arrow.down.circle")
+                        }
+                        .tint(.blue)
+                        .disabled(!canStartDownload(for: show))
+                    }
                 }
             }
             .searchable(text: $searchQuery, prompt: "Search Library Items")
@@ -68,6 +95,17 @@ struct ShowsListView: View {
             .refreshable {
                 await fetchShows()
             }
+        }
+        .alert("Delete Download", isPresented: $showDeleteConfirmation, presenting: deleteCandidate) { downloaded in
+            Button("Delete", role: .destructive) {
+                downloadManager.deleteDownloadedItem(for: downloaded.id)
+                deleteCandidate = nil
+            }
+            Button("Cancel", role: .cancel) {
+                deleteCandidate = nil
+            }
+        } message: { downloaded in
+            Text("Delete \"\(downloaded.baseItem.name ?? "download")\"? This cannot be undone.")
         }
     }
     
@@ -104,6 +142,60 @@ struct ShowsListView: View {
         guard let serverUrl = URL(string: serverUrl),
               let id = show.id else { return nil }
         return URL(string: "\(serverUrl)/Items/\(id)/Images/Primary?api_key=\(token ?? "")")
+    }
+
+    private func startDownload(for show: BaseItemDto) {
+        guard let token = token,
+              !token.isEmpty,
+              let itemId = show.id else {
+            return
+        }
+
+        guard downloadManager.downloadedItems[itemId] == nil,
+              downloadManager.downloads[itemId] == nil else {
+            return
+        }
+
+        downloadManager.startDownload(for: show, serverUrl: serverUrl, accessToken: token)
+    }
+
+    private func canStartDownload(for show: BaseItemDto) -> Bool {
+        guard let token = token,
+              !token.isEmpty,
+              let itemId = show.id else {
+            return false
+        }
+
+        if downloadManager.downloadedItems[itemId] != nil {
+            return false
+        }
+        if downloadManager.downloads[itemId] != nil {
+            return false
+        }
+
+        return true
+    }
+
+    private func swipeAction(for show: BaseItemDto) -> LibrarySwipeAction {
+        guard let itemId = show.id else {
+            return .download
+        }
+
+        if let downloaded = downloadManager.downloadedItems[itemId] {
+            return .delete(downloaded)
+        }
+
+        if downloadManager.downloads[itemId] != nil {
+            return .cancel(itemId)
+        }
+
+        return .download
+    }
+
+    private enum LibrarySwipeAction {
+        case delete(DownloadManager.DownloadedItem)
+        case cancel(String)
+        case download
     }
 }
 

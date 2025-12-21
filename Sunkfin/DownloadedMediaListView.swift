@@ -125,6 +125,8 @@ struct DownloadedMediaListView: View {
     let serverUrl: String
     @State private var searchQuery = ""
     @StateObject private var downloadManager = DownloadManager.shared
+    @State private var pendingDeleteItems: [DownloadManager.DownloadedItem] = []
+    @State private var showDeleteConfirmation = false
 
     // Filter downloaded items based on the search query.
     var filteredDownloads: [DownloadManager.DownloadedItem] {
@@ -153,6 +155,13 @@ struct DownloadedMediaListView: View {
                     Section(header: Text("Downloading")) {
                         ForEach(filteredCurrentDownloads, id: \.id) { download in
                             DownloadRow(download: download)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        downloadManager.cancelDownload(for: download.id)
+                                    } label: {
+                                        Label("Cancel", systemImage: "xmark.circle")
+                                    }
+                                }
                         }
                     }
                 }
@@ -201,6 +210,21 @@ struct DownloadedMediaListView: View {
             .searchable(text: $searchQuery, prompt: "Search Downloaded Media")
             .navigationTitle("Library")
         }
+        .alert("Delete Downloaded Media", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                pendingDeleteItems.forEach { downloadManager.deleteDownloadedItem(for: $0.id) }
+                pendingDeleteItems = []
+            }
+            Button("Cancel", role: .cancel) {
+                pendingDeleteItems = []
+            }
+        } message: {
+            if pendingDeleteItems.count == 1 {
+                Text("Delete \"\(pendingDeleteItems.first?.baseItem.name ?? "download")\" from your device permanently?")
+            } else {
+                Text("Delete \(pendingDeleteItems.count) downloads from your device permanently?")
+            }
+        }
     }
     
     private func getImageUrl(for item: BaseItemDto) -> URL? {
@@ -211,10 +235,13 @@ struct DownloadedMediaListView: View {
     }
     
     private func deleteItems(at offsets: IndexSet) {
-        offsets.forEach { index in
-            let item = filteredDownloads[index]
-            downloadManager.deleteDownloadedItem(for: item.id)
+        let itemsToDelete = offsets.compactMap { index -> DownloadManager.DownloadedItem? in
+            guard filteredDownloads.indices.contains(index) else { return nil }
+            return filteredDownloads[index]
         }
+        guard !itemsToDelete.isEmpty else { return }
+        pendingDeleteItems = itemsToDelete
+        showDeleteConfirmation = true
     }
 }
 

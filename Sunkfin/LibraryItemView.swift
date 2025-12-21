@@ -13,6 +13,8 @@ struct LibraryItemView: View {
 
     @State private var downloadProgress: Double = 0.0
     @State private var isDownloading: Bool = false
+    @State private var pendingDeleteItem: DownloadManager.DownloadedItem?
+    @State private var showDeleteConfirmation = false
 
     // Check if the media item has been downloaded.
     var downloadedItem: DownloadManager.DownloadedItem? {
@@ -54,7 +56,8 @@ struct LibraryItemView: View {
             if let downloaded = downloadedItem {
                 HStack(spacing: 16) {
                     Button(action: {
-                        downloadManager.deleteDownloadedItem(for: downloaded.id)
+                        pendingDeleteItem = downloaded
+                        showDeleteConfirmation = true
                     }) {
                         Image(systemName: "trash")
                             .frame(width: 50, height: 50)
@@ -123,6 +126,17 @@ struct LibraryItemView: View {
             } else {
                 isDownloading = false
             }
+        }
+        .alert("Delete Download", isPresented: $showDeleteConfirmation, presenting: pendingDeleteItem) { item in
+            Button("Delete", role: .destructive) {
+                downloadManager.deleteDownloadedItem(for: item.id)
+                pendingDeleteItem = nil
+            }
+            Button("Cancel", role: .cancel) {
+                pendingDeleteItem = nil
+            }
+        } message: { item in
+            Text("Delete \"\(item.baseItem.name ?? "download")\" permanently?")
         }
     }
 }
