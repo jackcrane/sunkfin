@@ -191,7 +191,7 @@ struct DownloadedMediaListView: View {
                                         .lineLimit(2)
 
                                     if let year = downloadedItem.baseItem.productionYear {
-                                        Text("\(year)")
+                                        Text(verbatim: "\(year)")
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                     }

@@ -41,7 +41,7 @@ struct ShowsListView: View {
                                 .lineLimit(2)
                             
                             if let year = show.productionYear {
-                                Text("\(String(year))")
+                                Text(verbatim: "\(year)")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
