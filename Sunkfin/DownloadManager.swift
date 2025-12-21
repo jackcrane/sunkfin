@@ -34,6 +34,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
     
     @Published var downloads: [String: Download] = [:]
     @Published var downloadedItems: [String: DownloadedItem] = [:]
+    @Published private(set) var hasActiveDownloads: Bool = false
     
     // Create a background URLSession with a unique identifier.
     private lazy var backgroundSession: URLSession = {
@@ -95,6 +96,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         
         // Observe the download progress.
         task.resume()
+        refreshActiveDownloadState()
     }
     
     /// Cancels the download for a given item id.
@@ -105,6 +107,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
             downloads.removeValue(forKey: itemId)
             print("Download cancelled for \(itemId)")
         }
+        refreshActiveDownloadState()
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
@@ -180,6 +183,20 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         downloadedItems.removeValue(forKey: itemId)
         print("Removed downloaded item with id: \(itemId) from memory.")
     }
+
+    /// Deletes every downloaded item and stops any active downloads.
+    func removeAllDownloads() {
+        let activeDownloads = Array(downloads.keys)
+        for itemId in activeDownloads {
+            cancelDownload(for: itemId)
+        }
+
+        let downloadedIds = Array(downloadedItems.keys)
+        for itemId in downloadedIds {
+            deleteDownloadedItem(for: itemId)
+        }
+        refreshActiveDownloadState()
+    }
     
     // MARK: - URLSessionDownloadDelegate Methods
     
@@ -250,6 +267,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
                 self.downloadedItems[itemId] = downloadedItem
             }
             self.downloads.removeValue(forKey: itemId)
+            self.refreshActiveDownloadState()
         }
     }
     
@@ -260,6 +278,13 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
                 print("Download error for \(itemId): \(error)")
             }
             self?.downloads.removeValue(forKey: itemId)
+            self?.refreshActiveDownloadState()
         }
+    }
+
+    private func refreshActiveDownloadState() {
+        let active = downloads.values.contains { $0.isDownloading }
+        guard hasActiveDownloads != active else { return }
+        hasActiveDownloads = active
     }
 }

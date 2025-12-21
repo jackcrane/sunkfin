@@ -19,7 +19,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if isLoggedIn, let serverUrl = serverUrl {
-                MainAppView(serverUrl: serverUrl)
+                MainAppView(serverUrl: serverUrl, onLogout: handleLogout)
             } else {
                 ConnectionView(onLoginSuccess: { url in
                     self.serverUrl = url
@@ -41,6 +41,11 @@ struct ContentView: View {
                 self.isLoggedIn = true
             }
         }
+    }
+
+    private func handleLogout() {
+        serverUrl = nil
+        isLoggedIn = false
     }
 }
 
