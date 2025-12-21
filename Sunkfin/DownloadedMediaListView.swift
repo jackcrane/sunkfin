@@ -87,7 +87,7 @@ struct DownloadRow: View {
         return String(repeating: " ", count: targetLength - value.count) + value
     }
     
-    private static func formattedBytes(_ bytes: Int64) -> String {
+    static func formattedBytes(_ bytes: Int64) -> String {
         let absolute = Double(abs(bytes))
         let units: [(threshold: Double, label: String)] = [
             (threshold: Double(1 << 30), label: "GB"),
@@ -166,7 +166,10 @@ struct DownloadedMediaListView: View {
                     }
                 }
                 
-                Section(header: Text("Downloaded Media")) {
+                Section(header: Text("Downloaded Media"),
+                        footer: Text(downloadSummaryText)
+                            .font(.footnote)
+                            .foregroundColor(.secondary)) {
                     ForEach(filteredDownloads, id: \.id) { downloadedItem in
                         NavigationLink(destination: DownloadedMediaDetailView(downloadedItem: downloadedItem, serverUrl: serverUrl)) {
                             HStack(spacing: 12) {
@@ -242,6 +245,12 @@ struct DownloadedMediaListView: View {
         guard !itemsToDelete.isEmpty else { return }
         pendingDeleteItems = itemsToDelete
         showDeleteConfirmation = true
+    }
+
+    private var downloadSummaryText: String {
+        let count = downloadManager.downloadedItems.count
+        let formattedSize = DownloadRow.formattedBytes(downloadManager.totalDownloadedBytes)
+        return "You have \(count) item\(count == 1 ? "" : "s") downloaded totaling \(formattedSize)"
     }
 }
 

@@ -36,6 +36,14 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
     @Published var downloadedItems: [String: DownloadedItem] = [:]
     @Published private(set) var hasActiveDownloads: Bool = false
     
+    /// Bytes used by downloaded media stored locally.
+    var totalDownloadedBytes: Int64 {
+        downloadedItems.values.reduce(Int64(0)) { total, item in
+            total + fileSize(of: item.fileURL)
+        }
+    }
+
+    
     // Create a background URLSession with a unique identifier.
     private lazy var backgroundSession: URLSession = {
         let configuration = URLSessionConfiguration.background(withIdentifier: "com.myapp.backgroundSession")
@@ -97,6 +105,12 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         // Observe the download progress.
         task.resume()
         refreshActiveDownloadState()
+    }
+
+    private func fileSize(of url: URL) -> Int64 {
+        let attributes = (try? FileManager.default.attributesOfItem(atPath: url.path))
+        let sizeNumber = attributes?[.size] as? NSNumber
+        return sizeNumber?.int64Value ?? 0
     }
     
     /// Cancels the download for a given item id.
