@@ -56,8 +56,8 @@ struct SettingsView: View {
             }) {
                 LogoutConfirmationView {
                     performLogout()
-                    showingLogoutWarning = false
-                }
+        showingLogoutWarning = false
+    }
             }
             .sheet(isPresented: $showingDonationSheet) {
                 SafariView(url: URL(string: "https://go.jackcrane.rocks/sunkfin-donation")!)
@@ -77,6 +77,7 @@ struct SettingsView: View {
         downloadManager.removeAllDownloads()
         UserDefaults.standard.removeObject(forKey: "accessToken")
         UserDefaults.standard.removeObject(forKey: "serverUrl")
+        UserDefaults.standard.removeObject(forKey: "userId")
         onLogout()
     }
 }

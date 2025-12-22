@@ -100,6 +100,7 @@ struct LoginView: View {
                 // ✅ Persist login credentials
                 UserDefaults.standard.set(serverUrl, forKey: "serverUrl")
                 UserDefaults.standard.set(result.accessToken, forKey: "accessToken")
+                UserDefaults.standard.setValue(result.user?.id, forKey: "userId")
 
                 // ✅ Pass `serverUrl` to `onLoginSuccess`
                 DispatchQueue.main.async {

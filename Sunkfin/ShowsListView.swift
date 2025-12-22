@@ -1,4 +1,5 @@
 import SwiftUI
+import Get
 import JellyfinAPI
 
 struct ShowsListView: View {
@@ -12,9 +13,14 @@ struct ShowsListView: View {
     @State private var isLoadingItems = false
     @State private var deleteCandidate: DownloadManager.DownloadedItem?
     @State private var showDeleteConfirmation = false
+    @State private var isUsingUserViewsFallback = false
 
     private var accessToken: String? {
         UserDefaults.standard.string(forKey: "accessToken")
+    }
+
+    private var storedUserId: String? {
+        UserDefaults.standard.string(forKey: "userId")
     }
 
     private var selectedLibrary: BaseItemDto? {
@@ -142,28 +148,41 @@ struct ShowsListView: View {
                 Text("No libraries found.")
                     .foregroundColor(.secondary)
             } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(libraries, id: \.id) { library in
-                            if let id = library.id {
-                                Button {
-                                    guard selectedLibraryId != id else { return }
-                                    selectedLibraryId = id
-                                    Task {
-                                        await fetchItems(for: id)
+                VStack(alignment: .leading, spacing: 8) {
+                    if isUsingUserViewsFallback {
+                        HStack(spacing: 4) {
+                            Image(systemName: "person.crop.square.fill")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("Showing personal views instead of full libraries.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 6)
+                    }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(libraries, id: \.id) { library in
+                                if let id = library.id {
+                                    Button {
+                                        guard selectedLibraryId != id else { return }
+                                        selectedLibraryId = id
+                                        Task {
+                                            await fetchItems(for: id)
+                                        }
+                                    } label: {
+                                        Text(library.name ?? "Unnamed")
+                                            .font(.subheadline)
+                                            .foregroundColor(selectedLibraryId == id ? .white : .primary)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                Capsule()
+                                                    .fill(selectedLibraryId == id ? Color.accentColor : Color(.secondarySystemFill))
+                                            )
                                     }
-                                } label: {
-                                    Text(library.name ?? "Unnamed")
-                                        .font(.subheadline)
-                                        .foregroundColor(selectedLibraryId == id ? .white : .primary)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 8)
-                                        .background(
-                                            Capsule()
-                                                .fill(selectedLibraryId == id ? Color.accentColor : Color(.secondarySystemFill))
-                                        )
+                                    .animation(.easeInOut, value: selectedLibraryId)
                                 }
-                                .animation(.easeInOut, value: selectedLibraryId)
                             }
                         }
                     }
@@ -248,8 +267,48 @@ struct ShowsListView: View {
             } else {
                 items = []
             }
+
+            isUsingUserViewsFallback = false
         } catch {
-            print("Failed to fetch media libraries: \(error)")
+            if let apiError = error as? APIError,
+               case .unacceptableStatusCode(403) = apiError {
+                await fetchUserViews(using: client)
+            } else {
+                print("Failed to fetch media libraries: \(error)")
+            }
+        }
+    }
+
+    @MainActor
+    private func fetchUserViews(using client: JellyfinClient) async {
+        isUsingUserViewsFallback = true
+        isLoadingLibraries = true
+        defer { isLoadingLibraries = false }
+
+        let userId = await loadCurrentUserIdIfNeeded(using: client)
+
+        do {
+            let parameters = Paths.GetUserViewsParameters(userID: userId, isIncludeHidden: false)
+            let response = try await client.send(Paths.getUserViews(parameters: parameters)).value
+            let availableLibraries = (response.items ?? [])
+                .filter { $0.id != nil }
+                .sorted { ($0.name ?? "") < ($1.name ?? "") }
+            libraries = availableLibraries
+
+            if let current = selectedLibraryId,
+               availableLibraries.contains(where: { $0.id == current }) {
+                // Keep the existing selection.
+            } else {
+                selectedLibraryId = availableLibraries.first?.id
+            }
+
+            if let libraryId = selectedLibraryId {
+                await fetchItems(for: libraryId)
+            } else {
+                items = []
+            }
+        } catch {
+            print("Failed to fetch user views: \(error)")
         }
     }
 
@@ -259,18 +318,60 @@ struct ShowsListView: View {
         isLoadingItems = true
         defer { isLoadingItems = false }
 
+        let resolvedUserId = await loadCurrentUserIdIfNeeded(using: client)
+
         do {
-            let parameters = Paths.GetItemsParameters(
-                isRecursive: false,
-                parentID: libraryId,
-                enableUserData: true,
-                enableImages: true
-            )
-            let response = try await client.send(Paths.getItems(parameters: parameters)).value
+            let response: JellyfinAPI.BaseItemDtoQueryResult
+
+            if let userId = resolvedUserId {
+                let parameters = makeUserScopedItemParameters(parentId: libraryId)
+                response = try await client.send(Paths.getItemsByUserID(userID: userId, parameters: parameters)).value
+            } else {
+                let parameters = makeItemsParameters(parentId: libraryId)
+                response = try await client.send(Paths.getItems(parameters: parameters)).value
+            }
+
             items = (response.items ?? []).sorted { ($0.name ?? "") < ($1.name ?? "") }
         } catch {
             print("Failed to fetch library items: \(error)")
         }
+    }
+
+    private func makeItemsParameters(parentId: String) -> Paths.GetItemsParameters {
+        Paths.GetItemsParameters(
+            isRecursive: false,
+            parentID: parentId,
+            enableUserData: true,
+            enableImages: true
+        )
+    }
+
+    private func makeUserScopedItemParameters(parentId: String) -> Paths.GetItemsByUserIDParameters {
+        Paths.GetItemsByUserIDParameters(
+            isRecursive: false,
+            parentID: parentId,
+            enableUserData: true,
+            enableImages: true
+        )
+    }
+
+    @MainActor
+    private func loadCurrentUserIdIfNeeded(using client: JellyfinClient) async -> String? {
+        if let stored = storedUserId {
+            return stored
+        }
+
+        do {
+            let user = try await client.send(Paths.getCurrentUser).value
+            if let id = user.id {
+                UserDefaults.standard.setValue(id, forKey: "userId")
+                return id
+            }
+        } catch {
+            print("Failed to fetch current user id: \(error)")
+        }
+
+        return nil
     }
 
     private func makeClient() -> JellyfinClient? {
