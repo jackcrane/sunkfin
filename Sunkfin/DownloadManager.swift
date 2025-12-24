@@ -48,10 +48,15 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
     private lazy var backgroundSession: URLSession = {
         let configuration = URLSessionConfiguration.background(withIdentifier: "com.myapp.backgroundSession")
         configuration.sessionSendsLaunchEvents = true
-        configuration.isDiscretionary = true
+        configuration.isDiscretionary = false
         return URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
     }()
     
+    private func log(_ message: String) {
+        Swift.print(message)
+        LogManager.shared.log(message)
+    }
+
     override init() {
         super.init()
         loadDownloadedItems()
@@ -74,14 +79,14 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
                     if FileManager.default.fileExists(atPath: mp4FileURL.path) {
                         let downloadedItem = DownloadedItem(id: itemId, baseItem: baseItem, fileURL: mp4FileURL)
                         downloadedItems[itemId] = downloadedItem
-                        print("Loaded downloaded item: \(itemId)")
+                        log("Loaded downloaded item: \(itemId)")
                     }
                 } catch {
-                    print("Error loading downloaded item from \(fileURL.path): \(error)")
+                    log("Error loading downloaded item from \(fileURL.path): \(error)")
                 }
             }
         } catch {
-            print("Error listing documents directory: \(error)")
+            log("Error listing documents directory: \(error)")
         }
     }
     
@@ -89,7 +94,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
     func startDownload(for item: BaseItemDto, serverUrl: String, accessToken: String) {
         guard let itemId = item.id,
               let url = URL(string: "\(serverUrl)/Items/\(itemId)/Download?api_key=\(accessToken)") else {
-            print("Invalid URL or item id.")
+            log("Invalid URL or item id.")
             return
         }
         
@@ -103,6 +108,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         download.task = task
         
         // Observe the download progress.
+        log("Starting download for \(itemId) from \(url.absoluteString)")
         task.resume()
         refreshActiveDownloadState()
     }
@@ -119,7 +125,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
             download.task?.cancel()
             download.isDownloading = false
             downloads.removeValue(forKey: itemId)
-            print("Download cancelled for \(itemId)")
+            log("Download cancelled for \(itemId)")
         }
         refreshActiveDownloadState()
     }
@@ -165,7 +171,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
     /// Deletes a downloaded item and removes all associated files.
     func deleteDownloadedItem(for itemId: String) {
         guard let downloadedItem = downloadedItems[itemId] else {
-            print("No downloaded item found with id: \(itemId)")
+            log("No downloaded item found with id: \(itemId)")
             return
         }
         
@@ -175,10 +181,10 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         do {
             if fileManager.fileExists(atPath: downloadedItem.fileURL.path) {
                 try fileManager.removeItem(at: downloadedItem.fileURL)
-                print("Deleted file at: \(downloadedItem.fileURL.path)")
+                log("Deleted file at: \(downloadedItem.fileURL.path)")
             }
         } catch {
-            print("Error deleting file at \(downloadedItem.fileURL.path): \(error)")
+            log("Error deleting file at \(downloadedItem.fileURL.path): \(error)")
         }
         
         // Delete the metadata JSON file.
@@ -187,15 +193,15 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         do {
             if fileManager.fileExists(atPath: jsonURL.path) {
                 try fileManager.removeItem(at: jsonURL)
-                print("Deleted metadata file at: \(jsonURL.path)")
+                log("Deleted metadata file at: \(jsonURL.path)")
             }
         } catch {
-            print("Error deleting metadata file at \(jsonURL.path): \(error)")
+            log("Error deleting metadata file at \(jsonURL.path): \(error)")
         }
         
         // Remove the item from our tracking dictionary.
         downloadedItems.removeValue(forKey: itemId)
-        print("Removed downloaded item with id: \(itemId) from memory.")
+        log("Removed downloaded item with id: \(itemId) from memory.")
     }
 
     /// Deletes every downloaded item and stops any active downloads.
@@ -217,7 +223,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         // Retrieve the item id from the task description.
         guard let itemId = downloadTask.taskDescription else {
-            print("Task description missing.")
+            log("Task description missing.")
             return
         }
         
@@ -231,7 +237,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
             do {
                 try fileManager.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
             } catch {
-                print("Error creating directory: \(error)")
+                log("Error creating directory: \(error)")
             }
         }
         
@@ -240,16 +246,16 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
             do {
                 try fileManager.removeItem(at: fileURL)
             } catch {
-                print("Error removing existing file: \(error)")
+                log("Error removing existing file: \(error)")
             }
         }
         
         // Immediately move the downloaded file to the destination.
         do {
             try fileManager.moveItem(at: location, to: fileURL)
-            print("File saved to: \(fileURL.path)")
+            log("File saved to: \(fileURL.path)")
         } catch {
-            print("Error moving file: \(error)")
+            log("Error moving file: \(error)")
             return // Exit if the move fails.
         }
         
@@ -260,15 +266,15 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
                 do {
                     try fileManager.removeItem(at: jsonURL)
                 } catch {
-                    print("Error removing existing metadata file: \(error)")
+                    log("Error removing existing metadata file: \(error)")
                 }
             }
             do {
                 let data = try JSONEncoder().encode(baseItem)
                 try data.write(to: jsonURL)
-                print("Metadata saved to: \(jsonURL.path)")
+                log("Metadata saved to: \(jsonURL.path)")
             } catch {
-                print("Error saving metadata: \(error)")
+                log("Error saving metadata: \(error)")
             }
         }
         
@@ -289,7 +295,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         guard let itemId = task.taskDescription else { return }
         DispatchQueue.main.async { [weak self] in
             if let error = error {
-                print("Download error for \(itemId): \(error)")
+                self?.log("Download error for \(itemId): \(error)")
             }
             self?.downloads.removeValue(forKey: itemId)
             self?.refreshActiveDownloadState()

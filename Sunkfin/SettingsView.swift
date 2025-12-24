@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var showingLogoutWarning = false
     @State private var showingDonationSheet = false
     @State private var showingSupportResetConfirmation = false
+    @State private var showingLogViewer = false
     @ObservedObject private var supporterManager = SupporterManager.shared
     private let downloadManager = DownloadManager.shared
 
@@ -36,6 +37,14 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Button {
+                        showingLogViewer = true
+                    } label: {
+                        Text("View logs")
+                    }
+                }
+
+                Section {
                     Text("Sunkfin is not endorsed, supported, or built in collaboration with the Jellyfin core team. It is offered as-is and donations are appreciated.")
                         .font(.body)
                         .foregroundColor(.secondary)
@@ -56,11 +65,14 @@ struct SettingsView: View {
             }) {
                 LogoutConfirmationView {
                     performLogout()
-        showingLogoutWarning = false
-    }
+                    showingLogoutWarning = false
+                }
             }
             .sheet(isPresented: $showingDonationSheet) {
                 SafariView(url: URL(string: "https://go.jackcrane.rocks/sunkfin-donation")!)
+            }
+            .sheet(isPresented: $showingLogViewer) {
+                LogsView()
             }
             .alert("Reset donor benefits", isPresented: $showingSupportResetConfirmation) {
                 Button("Reset", role: .destructive) {
