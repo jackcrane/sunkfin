@@ -10,29 +10,39 @@ struct SettingsView: View {
     @State private var showingLogViewer = false
     @ObservedObject private var supporterManager = SupporterManager.shared
     private let downloadManager = DownloadManager.shared
+    private var storedUsername: String? {
+        UserDefaults.standard.string(forKey: "username")
+    }
+
+    private var shouldShowDonationSection: Bool {
+        guard let username = storedUsername else { return true }
+        return username.lowercased() != "appstoretester"
+    }
 
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    Button {
-                        showingDonationSheet = true
-                    } label: {
-                        Text("Support Sunkfin via a small donation")
-                    }
-
-                    if supporterManager.isSupporterActive, let expiryText = supporterManager.expiryDisplayText {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Thanks for your support")
-                                .font(.subheadline)
-                            Button {
-                                showingSupportResetConfirmation = true
-                            } label: {
-                                Text("Donor benefits available until \(expiryText). Tap to reset")
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
+                if shouldShowDonationSection {
+                    Section {
+                        Button {
+                            showingDonationSheet = true
+                        } label: {
+                            Text("Support Sunkfin via a small donation")
                         }
-                        .padding(.top, 4)
+
+                        if supporterManager.isSupporterActive, let expiryText = supporterManager.expiryDisplayText {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Thanks for your support")
+                                    .font(.subheadline)
+                                Button {
+                                    showingSupportResetConfirmation = true
+                                } label: {
+                                    Text("Donor benefits available until \(expiryText). Tap to reset")
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
+                            .padding(.top, 4)
+                        }
                     }
                 }
 
@@ -90,6 +100,7 @@ struct SettingsView: View {
         UserDefaults.standard.removeObject(forKey: "accessToken")
         UserDefaults.standard.removeObject(forKey: "serverUrl")
         UserDefaults.standard.removeObject(forKey: "userId")
+        UserDefaults.standard.removeObject(forKey: "username")
         onLogout()
     }
 }

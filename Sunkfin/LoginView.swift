@@ -101,6 +101,7 @@ struct LoginView: View {
                 UserDefaults.standard.set(serverUrl, forKey: "serverUrl")
                 UserDefaults.standard.set(result.accessToken, forKey: "accessToken")
                 UserDefaults.standard.setValue(result.user?.id, forKey: "userId")
+                UserDefaults.standard.setValue(username, forKey: "username")
 
                 // ✅ Pass `serverUrl` to `onLoginSuccess`
                 DispatchQueue.main.async {
