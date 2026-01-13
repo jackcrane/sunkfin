@@ -36,7 +36,7 @@ struct LoginView: View {
                         .textInputAutocapitalization(.never)
                         .focused($isInputFocused)
 
-                    Text("Password")
+                    Text("Password (optional)")
                         .font(.headline)
 
                     SecureField("Enter password", text: $password)
@@ -47,6 +47,10 @@ struct LoginView: View {
                         .textInputAutocapitalization(.never)
                         .focused($isInputFocused)
                         .submitLabel(.done)
+
+                    Text("Leave blank if your account has passwordless access.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
                 if let error = errorMessage {
@@ -69,7 +73,7 @@ struct LoginView: View {
                             .font(.headline)
                     }
                 }
-                .disabled(isLoggingIn || username.isEmpty || password.isEmpty)
+                .disabled(isLoggingIn || username.isEmpty)
                 .padding(.bottom, isInputFocused ? 10 : 30)
                 .animation(.easeInOut, value: isInputFocused)
             }
