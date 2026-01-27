@@ -96,6 +96,9 @@ struct SettingsView: View {
     }
 
     private func performLogout() {
+        let userId = UserDefaults.standard.string(forKey: "userId")
+        Analytics.trackLogout(userId: userId, username: storedUsername)
+
         downloadManager.removeAllDownloads()
         UserDefaults.standard.removeObject(forKey: "accessToken")
         UserDefaults.standard.removeObject(forKey: "serverUrl")

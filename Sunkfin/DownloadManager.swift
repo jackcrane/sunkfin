@@ -8,6 +8,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
     // A download record for an item.
     final class Download: Identifiable, ObservableObject {
         let id: String
+        let serverUrl: String
         var baseItem: BaseItemDto? // Store metadata for later use.
         @Published var progress: Double = 0.0
         @Published var isDownloading: Bool = false
@@ -18,9 +19,11 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
         var task: URLSessionDownloadTask?
         var speedSampleTime: Date?
         var speedSampleBytes: Int64 = 0
+        var startEventCaptured = false
         
-        init(id: String, baseItem: BaseItemDto? = nil) {
+        init(id: String, serverUrl: String, baseItem: BaseItemDto? = nil) {
             self.id = id
+            self.serverUrl = serverUrl
             self.baseItem = baseItem
         }
     }
@@ -98,7 +101,7 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
             return
         }
         
-        let download = Download(id: itemId, baseItem: item)
+        let download = Download(id: itemId, serverUrl: serverUrl, baseItem: item)
         download.isDownloading = true
         downloads[itemId] = download
         
@@ -163,6 +166,15 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
                 download.estimatedTimeRemaining = Double(max(remainingBytes, 0)) / download.downloadSpeed
             } else {
                 download.estimatedTimeRemaining = nil
+            }
+
+            if !download.startEventCaptured, totalBytesExpectedToWrite > 0 {
+                download.startEventCaptured = true
+                Analytics.trackDownloadStarted(
+                    for: download.baseItem,
+                    expectedBytes: totalBytesExpectedToWrite,
+                    serverUrl: download.serverUrl
+                )
             }
             
         }
@@ -276,6 +288,17 @@ final class DownloadManager: NSObject, ObservableObject, URLSessionDownloadDeleg
             } catch {
                 log("Error saving metadata: \(error)")
             }
+        }
+
+        // Ensure the download start event is emitted even if the expected size was unavailable earlier.
+        if let download = downloads[itemId], !download.startEventCaptured {
+            let finalSize = fileSize(of: fileURL)
+            download.startEventCaptured = true
+            Analytics.trackDownloadStarted(
+                for: download.baseItem,
+                expectedBytes: finalSize,
+                serverUrl: download.serverUrl
+            )
         }
         
         // Update tracking dictionaries on the main thread.

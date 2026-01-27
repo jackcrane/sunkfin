@@ -446,6 +446,7 @@ struct NativeVideoPlayerView: UIViewControllerRepresentable {
         controller.player = player
         controller.entersFullScreenWhenPlaybackBegins = true
         controller.exitsFullScreenWhenPlaybackEnds = true
+        controller.view.accessibilityIdentifier = "ph-no-capture"
 
         controller.allowsPictureInPicturePlayback = true
         if #available(iOS 14.2, *) {

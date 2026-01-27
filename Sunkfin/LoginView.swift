@@ -107,6 +107,8 @@ struct LoginView: View {
                 UserDefaults.standard.setValue(result.user?.id, forKey: "userId")
                 UserDefaults.standard.setValue(username, forKey: "username")
 
+                Analytics.trackLogin(userId: result.user?.id, username: username, serverUrl: serverUrl)
+
                 // ✅ Pass `serverUrl` to `onLoginSuccess`
                 DispatchQueue.main.async {
                     onLoginSuccess(serverUrl)

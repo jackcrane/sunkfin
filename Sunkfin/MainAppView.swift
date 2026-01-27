@@ -49,6 +49,7 @@ struct MainAppView: View {
         guard !supporterManager.isSupporterActive else { return }
         if downloadManager.totalDownloadedBytes >= donationThresholdBytes {
             hasPresentedDonationSheet = true
+            Analytics.trackDonationModalShown(totalDownloadedBytes: downloadManager.totalDownloadedBytes)
             showDonationSheet = true
         }
     }

@@ -37,6 +37,7 @@ final class DeepLinkManager: ObservableObject {
 @main
 struct SunkfinApp: App {
     @StateObject private var deepLinkManager = DeepLinkManager.shared
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
         WindowGroup {

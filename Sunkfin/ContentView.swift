@@ -31,6 +31,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            Analytics.resumeIdentityFromStoredCredentials()
             checkStoredLogin()
         }
         .onChange(of: deepLinkManager.lastURL) { newURL in
