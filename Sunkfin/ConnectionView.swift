@@ -1,6 +1,34 @@
 import SwiftUI
 import JellyfinAPI
 
+enum ServerURLNormalizer {
+    static func normalizedString(from input: String) -> String? {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        let candidate: String
+        if let components = URLComponents(string: trimmed), components.scheme != nil {
+            candidate = trimmed
+        } else {
+            candidate = "https://\(trimmed)"
+        }
+
+        guard let url = URL(string: candidate), url.host != nil else {
+            return nil
+        }
+
+        return url.absoluteString
+    }
+
+    static func url(from input: String) -> URL? {
+        guard let normalizedString = normalizedString(from: input) else {
+            return nil
+        }
+
+        return URL(string: normalizedString)
+    }
+}
+
 struct ConnectionView: View {
     var onLoginSuccess: (String) -> Void
 
@@ -26,7 +54,7 @@ struct ConnectionView: View {
                     Text("Server Address")
                         .font(.headline)
 
-                    TextField("https://your-jellyfin-server.com", text: $serverUrl)
+                    TextField("your-jellyfin-server.com", text: $serverUrl)
                         .padding()
                         .frame(height: 48)
                         .background(Color(.systemGray6))
@@ -66,7 +94,8 @@ struct ConnectionView: View {
     }
 
     private func testConnection() {
-        guard let url = URL(string: serverUrl), !serverUrl.isEmpty else {
+        guard let normalizedServerUrl = ServerURLNormalizer.normalizedString(from: serverUrl),
+              let url = ServerURLNormalizer.url(from: normalizedServerUrl) else {
             withAnimation {
                 errorMessage = "Invalid URL"
             }
@@ -82,7 +111,8 @@ struct ConnectionView: View {
                 let client = JellyfinClient(configuration: config)
                 let _ = try await client.send(Paths.getPublicSystemInfo)
 
-                UserDefaults.standard.set(serverUrl, forKey: "serverUrl")
+                serverUrl = normalizedServerUrl
+                UserDefaults.standard.set(normalizedServerUrl, forKey: "serverUrl")
                 withAnimation {
                     navigateToLogin = true
                 }

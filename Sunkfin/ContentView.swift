@@ -55,10 +55,12 @@ struct ContentView: View {
 
     private func checkStoredLogin() {
         if let savedUrl = UserDefaults.standard.string(forKey: "serverUrl"),
+           let normalizedServerUrl = ServerURLNormalizer.normalizedString(from: savedUrl),
            let token = UserDefaults.standard.string(forKey: "accessToken"),
            !token.isEmpty {
+            UserDefaults.standard.set(normalizedServerUrl, forKey: "serverUrl")
             DispatchQueue.main.async {
-                self.serverUrl = savedUrl
+                self.serverUrl = normalizedServerUrl
                 self.isLoggedIn = true
             }
         }

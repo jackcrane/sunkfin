@@ -90,8 +90,16 @@ struct LoginView: View {
 
         Task {
             do {
+                guard let url = ServerURLNormalizer.url(from: serverUrl) else {
+                    withAnimation {
+                        errorMessage = "Invalid server address"
+                    }
+                    isLoggingIn = false
+                    return
+                }
+
                 let config = JellyfinClient.Configuration(
-                    url: URL(string: serverUrl)!,
+                    url: url,
                     client: "Sunkfin",
                     deviceName: UIDevice.current.name,
                     deviceID: UIDevice.current.identifierForVendor?.uuidString ?? "",
